@@ -1,4 +1,4 @@
-require "slack"
+require "slack-ruby-client"
 require "open-uri"
 require "json"
 require "yaml"
@@ -15,20 +15,22 @@ def user_search(val, data)
 	end
 end
 
-Slack.configure { |config| config.token = val['token'] }
-client = Slack.realtime
+Slack.configure do |config|
+	config.token = val['token']
+end
+
+client = Slack::RealTime::Client.new
 
 client.on :message do |data|
 	unless data['subtype'] == 'bot_message'
-		Slack.chat_postMessage(
+		client.message(
 			text: "@#{user_search(val, data)} #{data['text']}",
 			username: val['name'] ||= 'わふー',
 			icon_emoji: val['pic'] ||= ':rube:',
 			channel: data['channel'],
-			link_names: true,
-			mrkdwn: true
+			link_names: true, mrkdwn: true
 		)
 	end
 end
 
-client.start
+client.start!
